@@ -35,7 +35,7 @@ function criaCliente() {
             return this.email.value
         },
         get getSexo() {
-            return this.sexo.value === 1 ? 'M' : 'F';
+            return this.sexo.value === '1' ? 'M' : 'F';
         },
         get getCidade() {
             return this.cidade.value

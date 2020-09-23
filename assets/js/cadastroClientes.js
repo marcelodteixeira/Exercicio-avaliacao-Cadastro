@@ -54,6 +54,7 @@ function criaCliente() {
             this.carregarEstado();
             this.carregarPais()
             if (!this.pegaListaLocalStorage('listaCliente')) this.criaListaInicial();
+            
 
         },
 
@@ -62,6 +63,12 @@ function criaCliente() {
                 const el = e.target;
                 if(el.id === this.cpf.id){
                 el.value = this.mascaraCpf(this.cpf.value)
+                }
+                if(el.id === this.cep.id){
+                    el.value = this.mascaraNumero(this.cep.value);
+                }
+                if(el.id === this.numero.id){
+                    el.value = this.mascaraNumero(this.numero.value);
                 }
                
             });
@@ -76,8 +83,8 @@ function criaCliente() {
            
         },
 
-       mascaraCep (valor){
-        let regexp = valor.replace(/^\d{5}-?\d{3}$/);
+       mascaraNumero (valor){
+        let regexp = valor.replace(/[^0-9]/g, "");
         return regexp;
        },
 
@@ -221,7 +228,7 @@ function criaCliente() {
                 if (cpfA !== cpf && !exit) {
                     flag = true
                 } else {
-                    alert("User Já Cadastrado")
+                    this.criaAlertDanger();
                     this.limpaInput();
                     flag = false;
                     exit = true;

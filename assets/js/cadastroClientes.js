@@ -2,7 +2,8 @@ function criaCliente() {
     return {
         nome: document.querySelector('#input-nome'),
         cpf: document.querySelector('#input-cpf'),
-        endereco: document.querySelector('#input-endereco'),
+        rua: document.querySelector('#input-rua'),
+        bairro: document.querySelector('#input-bairro'),
         numero: document.querySelector('#input-numero'),
         cep: document.querySelector('#input-cep'),
         email: document.querySelector('#input-email'),  
@@ -17,8 +18,11 @@ function criaCliente() {
         get getCpf() {
             return this.cpf.value;
         },
-        get getEndereco() {
-            return this.endereco.value;
+        get getRua() {
+            return this.rua.value;
+        },
+        get getBairro() {
+            return this.bairro.value;
         },
         get getNumero() {
             return this.numero.value;
@@ -31,19 +35,16 @@ function criaCliente() {
             return this.email.value
         },
         get getSexo() {
-            return this.sexo.value
+            return this.sexo.value === 1 ? 'M' : 'F';
         },
         get getCidade() {
-            return this.cpf.value
+            return this.cidade.value
         },
         get getEstado() {
             return this.estado.value
         },
         get getPais() {
             return this.pais.value
-        },
-        set setCpf (valor){
-           this.cpf.value = valor.replace(/[^0-9]/g, "").replace(/^([\d]{3})([\d]{3})?([\d]{3})?([\d]{2})?/, "$1.$2.$3-$4");
         },
 
         inicia() {
@@ -59,14 +60,10 @@ function criaCliente() {
         mascara() {
             document.addEventListener('keyup', (e)=>{
                 const el = e.target;
-                console.log(el.id);
                 if(el.id === this.cpf.id){
                 el.value = this.mascaraCpf(this.cpf.value)
-                 console.log(this.mascaraCpf(this.cpf.value));
                 }
-                if(el.id === this.numero.id){
-                    el.value = this.mascaraNumero(this.numero.value);
-                }
+               
             });
 
            
@@ -79,21 +76,26 @@ function criaCliente() {
            
         },
 
-       
+       mascaraCep (valor){
+        let regexp = valor.replace(/^\d{5}-?\d{3}$/);
+        return regexp;
+       },
 
         fixaCampo(element) {
             return element.disabled = true
 
         },
-        criaObj(Nome, Cpf, Endereco, Numero, Cep, Email, Sexo, Estado, Pais) {
+        criaObj(Nome, Cpf, Rua,Bairro, Numero, Cep, Email, Sexo,Cidade, Estado, Pais) {
             return {
                 Nome,
                 Cpf,
-                Endereco,
+                Rua,
+                Bairro,
                 Numero,
                 Cep,
                 Email,
                 Sexo,
+                Cidade,
                 Estado,
                 Pais,
             };
@@ -106,7 +108,7 @@ function criaCliente() {
             let listaLocalStr = this.pegaListaLocalStorage('listaCliente');
             let array = [];
             if (listaLocalStr !== null) array = JSON.parse(listaLocalStr);
-            let obj = this.criaObj(this.getNome,this.getCpf,this.getEndereco,this.getNumero,this.getCep,
+            let obj = this.criaObj(this.getNome,this.getCpf,this.getRua,this.getBairro,this.getNumero,this.getCep,
                 this.getEmail,this.getSexo,this.getCidade, this.getEstado, this.getPais);
             array.push(obj);
             listaLocalStr = JSON.stringify(array);
@@ -122,17 +124,35 @@ function criaCliente() {
             document.addEventListener('click', (e) => {
                 const el = e.target;
                 if (el.classList.contains('btn')) {
+                    if (!this.getNome) return;
+                    if (!this.getCpf) return;
+                    if (!this.getRua) return;
+                    if (!this.getBairro) return;
+                    if (!this.getNumero) return;
+                    if (!this.getCep) return;
+                    if (!this.getEmail) return;
+                    if (!this.getSexo) return;
                     if (!this.getCidade) return;
                     if (!this.getEstado) return;
-                    this.verificaCidade();
+                    if (!this.getPais) return;
+                    this.verificaCpf();
                     this.limpaInput();
                 }
             })
         },
 
         limpaInput() {
+            this.nome.value = "";
             this.cpf.value = "";
-            this.estado.value = ""
+            this.rua.value = "";
+            this.bairro.value = "";
+            this.numero.value = "";
+            this.cep.value = "";
+            this.email.value = "";
+            this.sexo.value = "";
+            this.cidade.value = "";
+            this.estado.value = "";
+            this.pais.value = "";
             //this.cpf.focus(); 
         },
 
@@ -142,12 +162,30 @@ function criaCliente() {
         },
 
 
-        criaArrayCidade(arrObj) {
+        criaarrayCpf(arrObj) {
             let array = new Array(arrObj);
             let arrayFlat = array.flat();
             let arrayMap = arrayFlat.map((obj) => {
 
                 return obj.Cidade;
+            })
+            return arrayMap;
+        },
+        criaArrayPais(arrObj) {
+            let array = new Array(arrObj);
+            let arrayFlat = array.flat();
+            let arrayMap = arrayFlat.map((obj) => {
+
+                return obj.NomePais;
+            })
+            return arrayMap;
+        },
+        criaArrayEstado(arrObj) {
+            let array = new Array(arrObj);
+            let arrayFlat = array.flat();
+            let arrayMap = arrayFlat.map((obj) => {
+
+                return obj.NomeEstado;
             })
             return arrayMap;
         },
@@ -161,23 +199,29 @@ function criaCliente() {
             return arrayMap;
         },
 
-        tiraAcentoMaiuscula(a) {
-            return a.replace(/[^a-zA-Z ]/g, "").toUpperCase();
+        arrayTiraCaract(array){
+            return array.map((i)=>{
+                return i.replace(/\D+/g, '')
+            })
+           },
+
+        tiraCaracteres(a) {
+            return a.replace(/\D+/g, '')
         },
-        verificaCidade() {
+        verificaCpf() {
             const listaCliente = JSON.parse(this.pegaListaLocalStorage('listaCliente'));
-            arrayCidade = this.this.criaArrayCidade(listaCliente);
-            console.log(arrayCidade);
-            let cpf = this.tiraAcentoMaiuscula(this.getCidade);
+            arrayCpf = this.arrayTiraCaract(this.criaArrayCpf(listaCliente));
+            console.log(arrayCpf);
+            let cpf = this.tiraCaracteres(this.getCpf);
             let flag = false;
             let exit = false;
-            for (let i = 0; i <= arrayCidade.length; i++) {
-                let cpfA = arrayCidade[i];
+            for (let i = 0; i <= arrayCpf.length; i++) {
+                let cpfA = arrayCpf[i];
 
                 if (cpfA !== cpf && !exit) {
                     flag = true
                 } else {
-                    alert("Cidade Já Cadastrada")
+                    alert("User Já Cadastrado")
                     this.limpaInput();
                     flag = false;
                     exit = true;
@@ -193,10 +237,9 @@ function criaCliente() {
             };
 
         },
-
         criaListaInicial() {
             let array = [];
-            let obj = this.criaObj('A', 'B', 'C');
+            let obj = this.criaObj('A','1','B');
             array.push(obj);
             let arrStr = JSON.stringify(array);
             this.enviaLocalStorage('listaCliente', arrStr);
@@ -214,25 +257,22 @@ function criaCliente() {
         verificaValorInicial() {
             let localStor = JSON.parse(this.pegaListaLocalStorage('listaCliente'));
             let arr = this.criaArrayCpf(localStor);
-            console.log(arr[0]);
-            return arr[0] === 'B' ? true : false;
+            console.log(typeof arr[0]);
+            return arr[0] === '1' ? true : false;
 
         },
 
        
-
         carregarEstado(){
-            let listaLocaisStr = localStorage.getItem("listaLocal");
-            let array = [];
-                if (listaLocaisStr != null){
-                    array = JSON.parse(listaLocaisStr);
-            }
+            let listaLocaisStr = JSON.parse(this.pegaListaLocalStorage('listaLocal'));
+            let array = this.criaArrayEstado(listaLocaisStr);
+            let arrayUnico = this.tiraValorDuplicadoArray(array);
             let combo = this.estado;
             let option;
-            for(let index = 0; index < array.length; index++){
+            for(let index = 0; index < arrayUnico.length; index++){
                 option = document.createElement("option");
-                option.text = array[index].NomeEstado;
-                option.value = array[index].NomeEstado;
+                option.text = arrayUnico[index];
+                option.value = arrayUnico[index];
                 combo.add(option);
             }
            
@@ -254,23 +294,28 @@ function criaCliente() {
            
         },
         carregarPais(){
-            let listaLocaisStr = localStorage.getItem("listaLocal");
-            let array = [];
-                if (listaLocaisStr != null){
-                    array = JSON.parse(listaLocaisStr);
-            }
+            let listaLocaisStr = JSON.parse(this.pegaListaLocalStorage('listaLocal'));
+            let array = this.criaArrayPais(listaLocaisStr);
+            let arrayUnico = this.tiraValorDuplicadoArray(array);
             let combo = this.pais;
             let option;
-            for(let index = 0; index < array.length; index++){
+            for(let index = 0; index < arrayUnico.length; index++){
                 option = document.createElement("option");
-                option.text = array[index].NomePais;
-                option.value = array[index].NomePais;
+                option.text = arrayUnico[index];
+                option.value = arrayUnico[index];
                 combo.add(option);
             }
            
         },
 
         
+        tiraValorDuplicadoArray(array){
+         
+           return array.filter(function(item, pos, self) {
+                return self.indexOf(item) == pos;
+            })
+            
+        }
         
 
     }
